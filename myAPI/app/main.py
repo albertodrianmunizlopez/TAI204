@@ -5,6 +5,7 @@ from fastapi import FastAPI, status, HTTPException
 import asyncio
 #importamos 
 from typing import Optional
+from pydantic import BaseModel   #Modelo pydantic
 
 #agregar dos nuevas importaciones 
 
@@ -25,6 +26,16 @@ usuarios=[
     {"id":2,"nombre":"Diego","edad":20},
     {"id":3,"nombre":"Jochua","edad":20}
 ]
+
+
+#***************
+#Modelo Pydantic de validacion 
+#***************
+
+class crear_Usuario(BaseModel):
+    id: int 
+    nombre: str
+    edad: int
 
 
 
@@ -128,7 +139,7 @@ async def consultaT():
 #lo vamos a agregar a la tabla de usuarios que tenemos arriba
 
 @app.post("/v1/usuarios/",tags=['CRUD HTTP'])  
-async def agregar_usuario(usuario:dict):
+async def agregar_usuario(usuario:crear_Usuario):
     for usr in usuarios:
         if usr["id"] == usuario.get("id"):
             raise HTTPException(
