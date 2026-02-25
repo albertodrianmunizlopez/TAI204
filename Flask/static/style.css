@@ -1,0 +1,12 @@
+input {
+    width: 90%;
+    padding: 5px;
+}
+
+.editar {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}

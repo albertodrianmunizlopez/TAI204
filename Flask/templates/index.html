@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CRUD Usuarios</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<h1>Usuarios</h1>
+
+<table>
+    <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Edad</th>
+        <th>Acción</th>
+    </tr>
+
+    {% for usuario in usuarios %}
+    <tr>
+        <form action="/actualizar" method="POST">
+            <td>
+                <input type="number" name="id" value="{{ usuario.id }}" readonly>
+            </td>
+            <td>
+                <input type="text" name="nombre" value="{{ usuario.nombre }}" required>
+            </td>
+            <td>
+                <input type="number" name="edad" value="{{ usuario.edad }}" required>
+            </td>
+            <td>
+                <button type="submit" class="editar">Actualizar</button>
+                <a class="btn eliminar" href="/eliminar/{{ usuario.id }}">Eliminar</a>
+            </td>
+        </form>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h2>Agregar Usuario</h2>
+<form action="/agregar" method="POST">
+    ID: <input type="number" name="id" required><br>
+    Nombre: <input type="text" name="nombre" required><br>
+    Edad: <input type="number" name="edad" required><br>
+    <button type="submit">Agregar</button>
+</form>
+
+</body>
+</html>
