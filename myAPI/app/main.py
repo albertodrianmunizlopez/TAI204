@@ -5,6 +5,7 @@ from fastapi import FastAPI, status, HTTPException
 import asyncio
 #importamos 
 from typing import Optional
+<<<<<<< Updated upstream
 from pydantic import BaseModel   #Modelo pydantic
 
 #agregar dos nuevas importaciones 
@@ -16,6 +17,14 @@ app=FastAPI(
     title="Mi primer API",
     description="Alberto Adrian Muiñz Lopez",
     version="1.0"   
+=======
+from pydantic import BaseModel,Field
+
+app = FastAPI(
+    title="Mi Primer API",
+    description="Muñiz Lopez Alberto Adrian",
+    version="1.0"
+>>>>>>> Stashed changes
 )
 
 #tabla ficticia solo para verificar 
@@ -27,6 +36,7 @@ usuarios=[
     {"id":3,"nombre":"Jochua","edad":20}
 ]
 
+<<<<<<< Updated upstream
 
 #***************
 #Modelo Pydantic de validacion 
@@ -36,6 +46,13 @@ class crear_Usuario(BaseModel):
     id: int 
     nombre: str
     edad: int
+=======
+# Modelo Pydantic  Validacion 
+class CrearUsuario(BaseModel):
+    id: int = Field(...,gt=0,description="identificador de usuario")
+    nombre: str = Field(..., min_length = 3, max_length = 50, example = "John Doe")#..., Obligatorio 
+    edad: int = Field(..., ge = 1, le = 125, description = "Edad valida entre 1 y 125")
+>>>>>>> Stashed changes
 
 
 
