@@ -1,215 +1,104 @@
-#importaciones
-#status es para manejar los estados de las respuestas HTTP
-#HTTPException es para manejar las excepciones HTTP y enviar respuestas de error personalizadas
+#Importaciones
 from fastapi import FastAPI, status, HTTPException
 import asyncio
-#importamos 
 from typing import Optional
-<<<<<<< Updated upstream
-from pydantic import BaseModel   #Modelo pydantic
+from pydantic import BaseModel, Field
 
-#agregar dos nuevas importaciones 
-
-
-#instancia del servidor
-#preparar todo el servidor con laas ventajas que ofrece fastapi 
-app=FastAPI(
-    title="Mi primer API",
-    description="Alberto Adrian Muiñz Lopez",
-    version="1.0"   
-=======
-from pydantic import BaseModel,Field
-
+#Instancia del servidor
 app = FastAPI(
     title="Mi Primer API",
-    description="Muñiz Lopez Alberto Adrian",
+    description="Jose Angel Sanchez Linares",
     version="1.0"
->>>>>>> Stashed changes
 )
 
-#tabla ficticia solo para verificar 
-#datos para ver como nos responderia un diccionario de usuarios
-
-usuarios=[
-    {"id":1,"nombre":"Alberto","edad":20},
-    {"id":2,"nombre":"Diego","edad":20},
-    {"id":3,"nombre":"Jochua","edad":20}
+#TB ficticia
+usuarios = [
+    {"id": 1, "nombre": "Diego","edad": 21},
+    {"id": 2, "nombre": "Coral","edad": 21},
+    {"id": 3, "nombre": "saul","edad": 21}
 ]
+   
+#Modelo Pydantic de validacion
+class crear_usuario(BaseModel):
+    id: int = Field(..., gt=0, description="Identificador de usuario")
+    nombre: str = Field(..., min_length=3, max_length=50, example="Juanito Doe")
+    edad: int = Field(..., ge=1, le = 125, description="Edad valida entre 1 y 125")
 
-<<<<<<< Updated upstream
-
-#***************
-#Modelo Pydantic de validacion 
-#***************
-
-class crear_Usuario(BaseModel):
-    id: int 
-    nombre: str
-    edad: int
-=======
-# Modelo Pydantic  Validacion 
-class CrearUsuario(BaseModel):
-    id: int = Field(...,gt=0,description="identificador de usuario")
-    nombre: str = Field(..., min_length = 3, max_length = 50, example = "John Doe")#..., Obligatorio 
-    edad: int = Field(..., ge = 1, le = 125, description = "Edad valida entre 1 y 125")
->>>>>>> Stashed changes
+#Endpoints
+@app.get("/", tags=['Inicio'])
+async def bienvenida():
+    return {"mesaje": "Bienvenido a FastAPI"}
 
 
+@app.get("/holaMundo", tags=['Asincronia'])
+async def Hola():
+    await asyncio.sleep(5)#Peticion, consultaBD, Archivo
+    return {
+        "mesaje": "Hola Mundo",
+        "status": "200"
+        }
 
-#Endpoints 
-@app.get("/",tags=["inicio"])
-#endpoint de inicio es la ruta con la que arrncara el servidor
-async def bienvenido():
-    return{"mesage":"Bienvenido a fastapi"}
-#lado izquirdo clave 
-#lado derecho el vamor en este caso clase es mensaje= valor igual a bienvenido a fastapi
-
-#hasta aqui ya tenemos nuestro servidor ya esta funcionado 
-
-#correr un servidor tenemos que ir a nuestra terminal
-
-#segundo endpoint 
-
-@app.get("/holamundo",tags=["Asincronia"])
-async def hola():
-    await asyncio.sleep(5)
-    return{"mesage":"Bienvenido a fastapi",
-           "status":"200"
-           }
-    
-    
-    
-#Endpoints creamos otro Endpoints lo que tenemos en cuenta es que los parametros lo estamos 
-#solicitando entre llaves  en este caso le decimos que para que v1 funcione es obligatorio un id 
-#nos aseguramos que el id se obligatorio y que lleve con el formato que necvesitamos en este caso 
-#sera entero es el mas comun 
-#el id que llegue sera entero y para poder pasar la va;idacion tiene que ser entero
-#cuidar las , por que son objetos JSON
-@app.get("/v1/usuarioOb/{id}",tags=["parametro obligatorio"])
-#endpoint de inicio es la ruta con la que arrncara el servidor
+@app.get("/v1/ParametroOb/{id}", tags=['Parametro obligatorio'])
 async def consultauno(id:int):
-    return{"mesage":"usuario encontrado","usuario":id,"status":"200"}
-
-#obligatorio que el paramtro este en el endpoint
-    
-    
-    
-    #4
-    #no puede aver dos enpoints con el mismo nombre en este caso si los dos son get 
-    #no pueden aver dos con el mismo nombre al menos que sean delete
-    #aguas con las llaves por que no es oblitario este caso no es obligatorio 
-    #y la funcion tiene que ser otro nombre por que si no reutilizamos la funcion del otro 
-    #optional[int]= None puede que venga o no venga un dato y en caso de que no 
-    #lo declaramos como nulo
-    
-@app.get("/v1/usuariosOp/",tags=["parametro obligatorio"])
-#endpoint de inicio es la ruta con la que arrncara el servidor
-async def consultatodos(id:Optional[int]=None):
+    return {"mesaje": "Usuario encontrado",
+            "usuario": id,
+            "status": "200"}
+ 
+@app.get("/v1/ParametroOp/", tags=['Parametro opcional'])
+async def consultatodos(id:Optional[int] = None):
     if id is not None:
-        #verificamos si el id no es nulo con is not None  
-        # si no es nulo quiere decir que viene con un valor 
-        #recorremos con un for es la llave que va recorrriendo el for 
-        #recorremos con usuarioK en la tabla usuarios
-        
         for usuarioK in usuarios:
             if usuarioK["id"] == id:
-             return{"mesage":"usuario encontrado", "usuario":usuarioK,"status":"200"}
-            
-            #caso donde si encontre al usuario en este caso si lo encontre
-            #si el for acaba y nose encontro el usuario enconces se ejecuta el return de abajo
-        
-            
-        return {"mesage":"usuario no encontrado"}
-    
-    #esto es por si el usuario no ingreso ningun id en el endpoint
-    #si el id es nulo osea que no se proporciono ningun id en el endpoint se ejecuta este return
+                return {"mesaje": "Usuario encontrado",
+                        "usuario": usuarioK,
+                        "status": "200"}
+        return {"mesaje": "Usuarios no encontrado", "status":"200"}
     else:
-        return{"message":"no se proporciono el id"}
-    
-    
-#crear un nuevo endpoint 
-#etiqueta crud http para que se vea en la documentacion que es un endpoint de crud http
-#y con laa funcion consultaT para consultar 
-#todo lo que aremos sera simular las acciones en la tabla que tebemos arriba 
-#creammos un json y contendra status
-
-@app.get("/v1/usuarios/",tags=['CRUD HTTP'])
+        return {"mesaje": "No se proporciono id", "status":"200"}
+ 
+@app.get("/v1/usuarios/", tags=['CRUD HTTP'])
 async def consultaT():
     return{
-        # lo que estamos haciendo aqui es simular una consulta a la tabla de usuarios que tenemos arriba
-        #status es el estado de la consulta en este caso 200
-        #total es el total de usuarios que tenemos en la tabla en este caso len(usuarios) nos da el total de usuarios
-        #
         "status":"200",
-        "total":len(usuarios),
-        "usuarios":usuarios
-          
+        "total": len(usuarios),
+        "Usuarios":usuarios
     }
-    
-   
-    
-#vamos a hacer un enpoint de tipo post 
-#pueden tener el mismo nombre y no hay conflicto ya que cada uno va a su camino
-#post se usa para crear
-#agregar un nuevo usuario a la tabla de usuarios que tenemos arriba
-#el nuevo usuario lo vamos a recibir en formato json y 
-#lo vamos a agregar a la tabla de usuarios que tenemos arriba
 
-@app.post("/v1/usuarios/",tags=['CRUD HTTP'])  
-async def agregar_usuario(usuario:crear_Usuario):
+@app.post("/v1/usuarios/", tags=['CRUD HTTP'])
+async def agregar_usuario(usuario:crear_usuario):
     for usr in usuarios:
-        if usr["id"] == usuario.get("id"):
+        if usr["id"] == usuario.id:
             raise HTTPException(
-                status_code=400, 
-                  detail="el id ya existe"
-            )
+                status_code= 400,
+                detail="El id ya existe"
+                )
     usuarios.append(usuario)
     return{
-        "nebsaje":"usuario agregado",
-        "Usuario" :usuario,
+        "Mensaje":"Usuario agregado",
+        "usuario": usuario,
         "status":"200"
     }
-    
-    #hacer put y delete de acuerdo a las funciones anteriores como "create"
 
-#put se usa para actualizar 
-#actualizar un usuario de la tabla de usuarios que tenemos arriba
-#el usuario actualizado lo vamos a recibir en formato json y
-#lo vamos a actualizar en la tabla de usuarios que tenemos arriba
-@app.put("/v1/usuarios/",tags=['CRUD HTTP']) 
-async def actualizar_usuarios(usuario:dict):
-    for usr in usuarios:
+@app.put("/v1/usuarios/", tags=['CRUD HTTP'])
+async def modificar_usuario(usuario:dict):
+    for i, usr in enumerate(usuarios):
         if usr["id"] == usuario.get("id"):
-            usr.update(usuario)
+            usuarios[i] = usuario
             return{
-                "mensaje":"usuario actualizado",
-                "usuario":usr,
+                "Mensaje":"Usuario modificado",
+                "usuario": usuario,
                 "status":"200"
             }
     raise HTTPException(
-        status_code=404,
-        detail="usuario no encontrado"
-    )
-    
-    
-    
-    #delete se usa para eliminar
-    #eliminar un usuario de la tabla de usuarios que tenemos arriba
-    #el usuario a eliminar lo vamos a recibir en formato json y
-    #lo vamos a eliminar de la tabla de usuarios que tenemos arriba
-@app.delete("/v1/usuarios/",tags=['CRUD HTTP']) 
-#la funcion se llama eliminar_usuario y recibe un id de tipo entero
-async def agregar_usuario(usuario:dict):
-    for usr in usuarios:
-        if usr["id"] == usuario.get("id"):
-            usuarios.remove(usr)
-            return{
-                "mensaje":"usuario eliminado",
-                "usuario":usr,
-                "status":"200"
-            }
-    raise HTTPException(
-        status_code=404,
-        detail="usuario no encontrado"
-    )
-    
+        status_code= 404,
+        detail="El id no existe"
+        )
+
+@app.delete("/v1/usuarios/{id}", tags=['CRUD HTTP'])
+async def eliminar_usuario(id:int):
+    global usuarios
+    usuarios = [usr for usr in usuarios if usr["id"] != id]
+    return{
+        "Mensaje":"Usuario eliminado",
+        "status":"200"
+    }
