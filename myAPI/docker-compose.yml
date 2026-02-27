@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: server_fastAPI
+    container_name: myapi-biblioteca
     ports:
       - "8000:8000"
     volumes:
