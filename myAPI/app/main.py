@@ -1,9 +1,12 @@
 #Importaciones
-from fastapi import FastAPI, status, HTTPException
+from fastapi import FastAPI, status, HTTPException, Depends   #Depends: Seguridad de los endpoints 
 import asyncio
 from typing import Optional
 from pydantic import BaseModel, Field, EmailStr
 from datetime import datetime
+from fastapi.security import HTTPBasic, HTTPBasicCredentials  #Importamos las dependencias de estas dos 
+import secrets#Genral de python la compracion y acciones dentro de la contraseña de los usuarios
+
 
 #Instancia del servidor
 app = FastAPI(
@@ -31,6 +34,25 @@ class crear_usuario(BaseModel):
     id: int = Field(..., gt=0, description="Identificador de usuario")
     nombre: str = Field(..., min_length=3, max_length=50, example="Juanito Doe")
     edad: int = Field(..., ge=1, le=125, description="Edad valida entre 1 y 125")
+
+#=============================
+# Sguridad con HTTP BASIC  
+#=============================
+
+security = HTTPBasic() #objeto security 
+
+def verificar_peticion(credenciales:HTTPBasicCredentials=Depends(security)):# El parametro son las contraseñas 
+    usuarioAut = secrets.compare_digest(credenciales.username,"Alberto")#Se crea el usuario el cual si tiene permisos 
+    contraAuth = secrets.compare_digest(credenciales.password,"123456")#Se crea la contraseña el cual es la contraseña correcta
+
+    if not(usuarioAut and contraAuth):
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail = "Crdenciales no autorizadas"
+        )
+    
+    return credenciales.username
+
 
 #=============================
 # ENDPOINTS GENERALES
@@ -108,12 +130,12 @@ async def modificar_usuario(usuario:dict):
         detail="El id no existe"
     )
 
-@app.delete("/v1/usuarios/{id}", tags=['CRUD HTTP'])
-async def eliminar_usuario(id:int):
-    global usuarios
+@app.delete("/v1/usuarios/{id}", tags=['CRUD HTTP'], status_code = status.HTTP_200_OK )
+async def eliminar_usuario(id:int, usuarioAuth:str = Depends(verificar_peticion)):# verifica los datos del usuario con 
+    global usuarios                                                               #permisos para eliminar 
     usuarios = [usr for usr in usuarios if usr["id"] != id]
     return {
-        "Mensaje":"Usuario eliminado",
+        "Mensaje": f"Usuario eliminado por {usuarioAuth}", #La f es para que reconozca al usuario 
         "status":"200"
     }
 
