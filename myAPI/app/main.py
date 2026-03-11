@@ -195,3 +195,18 @@ async def eliminar_usuario(
         "Mensaje": f"Usuario eliminado por {usuario_actual}",
         "status": "200"
     }
+
+#Docker compose up --build para crear un contenedor 
+#docker run -d -p 8000:8000 --name proyecto_api myapi-api    mejor opcon al crear contenedor
+#proyecto_api
+
+#uvicorn main:app --reload reiniciamos o guardamos bien el contenedor
+#docker stop <nombre_contenedor> Detener contenedor 
+#docker rm -f <nombre_contenedor>  Eliminar permanentemente
+#form data debemos instalar   pip install-multipart
+
+
+#/////para instalar con métodos 
+#docker compose down
+#docker compose build --no-cache
+#docker compose up
