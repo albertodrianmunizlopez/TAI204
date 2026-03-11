@@ -268,3 +268,7 @@ async def eliminar_prestamo(prestamo_id: int):
         "Mensaje": "Prestamo eliminado",
         "status": "200"
     }
+
+
+#from datetime import datetime, timedelta el tiempo
+#
