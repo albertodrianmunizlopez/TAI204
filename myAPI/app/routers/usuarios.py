@@ -1,62 +1,95 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from typing import Optional
+from fastapi import FastAPI, status, HTTPException,Depends,APIRouter
+#importar la base de datos 
 from app.data.database import usuarios
-from app.models.usuarios import CrearUsuario
+#importar el modelo de datos en este caso la clase de crear usuario
+from app.models.usuarios import crear_usuario
+
+#seguridad importamos 
 from app.security.auth import verificar_peticion
-import asyncio
+from typing import Optional
+
+#creamos importaciones 
+
+from sqlalchemy.orm import Session
+from app.data.db import get_db
+from app.data.usuario import Usuarios as usuarioDB
+
+
+#ahora vamos a arreglar la parte del error de app para ello vamos a hacer lo siguiente 
+# no creamos una instancia del servidor lo que aremos es poner una aapi router paaraa que este pongaa un
+# listado de tododos los anpoints dospinibles 
 
 router = APIRouter(
-    prefix="/usuarios",
-    tags=["Usuarios"]
+    prefix="/v1/usuarios", 
+    tags=["CRUD HTTP"]
 )
 
-# Bienvenida
+#le decimos al servidor que tenemos unos enpitns disponibles
+#dentro del api router vamos a definir el primer palamrtro como prefigo 
+#el app se repite en toas ls rutas y se repite lo de /v1/usuarioeste sera nuestro prefijo
+
+
+
 @router.get("/")
-async def inicio():
-    return {"mensaje": "API de usuarios"}
+async def consultaT(db: Session = Depends(get_db)):
+    querryUsuario = db.query(usuarioDB).all()
+   
+    return{
+      
+        "status":"200",
+        "total": len(querryUsuario),
+        "usuarios":querryUsuario
 
-# Async ejemplo
-@router.get("/hola")
-async def hola():
-    await asyncio.sleep(2)
-    return {"mensaje": "Hola mundo"}
+          
+    }
+    
 
-# Obtener todos o uno
-@router.get("/buscar")
-async def obtener_usuario(id: Optional[int] = None):
-    if id:
-        for u in usuarios:
-            if u["id"] == id:
-                return u
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-    return usuarios
 
-# Crear usuario
-@router.post("/")
-async def crear(usuario: CrearUsuario):
-    for u in usuarios:
-        if u["id"] == usuario.id:
-            raise HTTPException(status_code=400, detail="ID ya existe")
-
-    usuarios.append(usuario.dict())
-    return {"mensaje": "Usuario agregado", "usuario": usuario}
-
-# Actualizar
-@router.put("/")
-async def actualizar(usuario: dict):
-    for u in usuarios:
-        if u["id"] == usuario.get("id"):
-            u.update(usuario)
-            return {"mensaje": "Actualizado", "usuario": u}
-
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-# Eliminar
+@router.post("/")  
+async def agregar_usuario(usuarioP: crear_usuario, db: Session = Depends(get_db)):
+    usuarioNuevo = usuarioDB(nombre=usuarioP.nombre, edad=usuarioP.edad)
+    db.add(usuarioNuevo)
+    db.commit()
+    db.refresh(usuarioNuevo)
+    
+    return{
+        "mensaje":"usuario agregado",
+        "Usuario": usuarioNuevo,
+        "status":"200"
+    }
+    
+  
+@router.put("/") 
+async def actualizar_usuarios(usuario:dict):
+    for usr in usuarios:
+        if usr["id"] == usuario.get("id"):
+            usr.update(usuario)
+            return{
+                "mensaje":"usuario actualizado",
+                "usuario":usr,
+                "status":"200"
+            }
+    raise HTTPException(
+        status_code=404,
+        detail="usuario no encontrado"
+    )
+    
+ 
+    
+    
 @router.delete("/{id}")
-async def eliminar(id: int, user: str = Depends(verificar_peticion)):
-    for i, u in enumerate(usuarios):
-        if u["id"] == id:
-            usuarios.pop(i)
-            return {"mensaje": f"Eliminado por {user}"}
+async def eliminar_usuario(id: int, usuarioAuth: str = Depends(verificar_peticion)):
 
-    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    for usr in usuarios:
+        if usr["id"] == id:
+            usuarios.remove(usr)
+            return {
+                "mensaje": f"usuario eliminado por {usuarioAuth}",
+                "status": 200
+            }
+
+    raise HTTPException(
+        status_code=404,
+        detail="usuario no encontrado"
+    )
+    

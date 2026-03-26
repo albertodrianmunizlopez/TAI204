@@ -1,6 +1,10 @@
 fastapi
+
 uvicorn[standard]
-python-jose[cryptography]
-passlib[bcrypt]
-bcrypt==4.0.1
-python-multipart
+
+#sqlalchemy sirve para manejar la base de datos en 
+#este caso se usará con postgresql, por lo que también 
+#se necesita el driver psycopg2-binary
+sqlalchemy
+#psycopg2 es un driver para conectar con bases de datos postgresql
+psycopg2-binary

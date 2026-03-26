@@ -34,4 +34,3 @@ EXPOSE 8000
 #--port es para decirle a que puerto se va a conectar el servidor en este caso el 5000
 #--reload es para que el servidor se reinicie cada vez que hagamos un cambio en el codigo
 CMD ["uvicorn","app.main:app","--host","0.0.0.0","--port","8000","--reload"]
-
