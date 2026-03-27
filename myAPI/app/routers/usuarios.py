@@ -1,95 +1,90 @@
-from fastapi import FastAPI, status, HTTPException,Depends,APIRouter
-#importar la base de datos 
-from app.data.database import usuarios
-#importar el modelo de datos en este caso la clase de crear usuario
-from app.models.usuarios import crear_usuario
-
-#seguridad importamos 
-from app.security.auth import verificar_peticion
-from typing import Optional
-
-#creamos importaciones 
-
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+
 from app.data.db import get_db
 from app.data.usuario import Usuarios as usuarioDB
-
-
-#ahora vamos a arreglar la parte del error de app para ello vamos a hacer lo siguiente 
-# no creamos una instancia del servidor lo que aremos es poner una aapi router paaraa que este pongaa un
-# listado de tododos los anpoints dospinibles 
+from app.models.usuarios import crear_usuario, actualizar_usuario
 
 router = APIRouter(
-    prefix="/v1/usuarios", 
-    tags=["CRUD HTTP"]
+    prefix="/v1/usuarios",
+    tags=["Usuarios"]
 )
 
-#le decimos al servidor que tenemos unos enpitns disponibles
-#dentro del api router vamos a definir el primer palamrtro como prefigo 
-#el app se repite en toas ls rutas y se repite lo de /v1/usuarioeste sera nuestro prefijo
-
-
-
+# GET TODOS
 @router.get("/")
-async def consultaT(db: Session = Depends(get_db)):
-    querryUsuario = db.query(usuarioDB).all()
-   
-    return{
-      
-        "status":"200",
-        "total": len(querryUsuario),
-        "usuarios":querryUsuario
-
-          
-    }
-    
+def obtener_usuarios(db: Session = Depends(get_db)):
+    usuarios = db.query(usuarioDB).all()
+    return usuarios
 
 
-@router.post("/")  
-async def agregar_usuario(usuarioP: crear_usuario, db: Session = Depends(get_db)):
-    usuarioNuevo = usuarioDB(nombre=usuarioP.nombre, edad=usuarioP.edad)
-    db.add(usuarioNuevo)
+#  GET POR ID
+@router.get("/{id}")
+def obtener_usuario(id: int, db: Session = Depends(get_db)):
+    usuario = db.query(usuarioDB).filter(usuarioDB.id == id).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    return usuario
+
+
+#  POST
+@router.post("/")
+def crear(usuario: crear_usuario, db: Session = Depends(get_db)):
+    nuevo = usuarioDB(nombre=usuario.nombre, edad=usuario.edad)
+
+    db.add(nuevo)
     db.commit()
-    db.refresh(usuarioNuevo)
-    
-    return{
-        "mensaje":"usuario agregado",
-        "Usuario": usuarioNuevo,
-        "status":"200"
-    }
-    
-  
-@router.put("/") 
-async def actualizar_usuarios(usuario:dict):
-    for usr in usuarios:
-        if usr["id"] == usuario.get("id"):
-            usr.update(usuario)
-            return{
-                "mensaje":"usuario actualizado",
-                "usuario":usr,
-                "status":"200"
-            }
-    raise HTTPException(
-        status_code=404,
-        detail="usuario no encontrado"
-    )
-    
- 
-    
-    
+    db.refresh(nuevo)
+
+    return nuevo
+
+
+#  PUT (actualiza todo)
+@router.put("/{id}")
+def actualizar(id: int, datos: crear_usuario, db: Session = Depends(get_db)):
+    usuario = db.query(usuarioDB).filter(usuarioDB.id == id).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    usuario.nombre = datos.nombre
+    usuario.edad = datos.edad
+
+    db.commit()
+    db.refresh(usuario)
+
+    return usuario
+
+
+#  PATCH (actualización parcial)
+@router.patch("/{id}")
+def actualizar_parcial(id: int, datos: actualizar_usuario, db: Session = Depends(get_db)):
+    usuario = db.query(usuarioDB).filter(usuarioDB.id == id).first()
+
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    if datos.nombre is not None:
+        usuario.nombre = datos.nombre
+    if datos.edad is not None:
+        usuario.edad = datos.edad
+
+    db.commit()
+    db.refresh(usuario)
+
+    return usuario
+
+
+#  DELETE
 @router.delete("/{id}")
-async def eliminar_usuario(id: int, usuarioAuth: str = Depends(verificar_peticion)):
+def eliminar(id: int, db: Session = Depends(get_db)):
+    usuario = db.query(usuarioDB).filter(usuarioDB.id == id).first()
 
-    for usr in usuarios:
-        if usr["id"] == id:
-            usuarios.remove(usr)
-            return {
-                "mensaje": f"usuario eliminado por {usuarioAuth}",
-                "status": 200
-            }
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    raise HTTPException(
-        status_code=404,
-        detail="usuario no encontrado"
-    )
-    
+    db.delete(usuario)
+    db.commit()
+
+    return {"mensaje": "Usuario eliminado"}
